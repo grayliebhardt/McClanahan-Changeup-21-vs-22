@@ -1,0 +1,203 @@
+---
+title: "How Increasing Changeup Usage Made Shane McClanahan one of the Most Dominant Pitchers of 2022"
+author: "Grayson Liebhardt"
+date: "2022-12-13"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(baseballr) #For baseball data and functions
+library(scales) #For graphing
+```
+
+Tampa Bay Rays SP Shane McClanahan had a breakout sophomore year in 2022 receiving his first CY Young votes. In 2021, McClanahan posted an xERA(expected earned run average over nine innings based on expected weighted on-base average) of 4.60 which is not a great figure compared to league average. In 2022, McClanahan posted an elite 2.79 xERA dropping his xERA by a staggering 1.81 expected runs per nine innings. How did McClanahan find such success in 2022 compared to 2021? Are there other metrics that vastly improved as well over this span that correlate with this big drop in xERA? As an organization known for pitching development, I wanted to find if there are any metrics that it seems the Rays prioritize.
+
+```{r McClanahanData}
+head(chadwick_player_lu()) #For player database, no need to be displayed
+
+playerid_lookup(last_name = "McClanahan", first_name = "Shane") #Found player ID is 663556
+
+shane21temp <- statcast_search_pitchers(start_date = "2021-04-01", end_date = "2021-10-02", 
+                                        pitcherid = 663556) #Finds Shane McClanahan's 2021 pitches
+shane22temp <- statcast_search_pitchers(start_date = "2022-04-01", end_date = "2022-10-02", 
+                                        pitcherid = 663556)#Finds Shane McClanahan's 2022 pitches
+```
+
+```{r McClanahan Season Stats}
+Season <- c(2021, 2022, "Career", "MLB Average")
+Age <- c(24, 25, 0, 0)
+Pitches <- c(1954, 2463, 4417, 0)
+Batted_Balls <- c(337, 405, 742, 0)
+Barrels <- c(36, 26, 62, 0)
+Barrel_Percentage <- c(10.7, 6.4, 8.4, 6.7)
+Barrel_PA <- c(7.0, 4.1, 5.4, 4.6)
+Exit_Velocity <- c(91.7, 87.6, 89.5, 88.4)
+Max_EV <- c(117.3, 116.2, 117.3, 122.4)
+Launch_Angle <- c(8.5, 8.3, 8.4, 12.1)
+Sweet_Spot_Percentage <- c(36.8, 31.6, 34.0, 33.0)      
+#I had to combine multiple data sets that I found and input them manually as 
+#there was no option to export and I had to log everything manually.
+xBA <- c(.263, .207, .232, .245)
+xSLG <- c(.436, .332, .379, .405)
+WOBA <- c(.304, .248, .273, .316)
+xWOBA <- c(.328, .261, .291, .315)
+Hard_Hit_Percentage <- c(45.7, 32.6, 38.5, 35.8)
+#In the future I think I am going to build a program that scrapes data automatically if it 
+#is not found in baseballr as season overall stats for players are not included.
+K_Percentage <- c(27.3, 30.3, 29.0, 22.1)
+BB_Percentage <- c(7.2, 5.8, 6.4, 8.4)
+ERA <- c(3.43, 2.54, 0, 0)
+xERA <- c(4.60, 2.79, 0, 0)
+FIP <- c(3.31, 3.00, 3.13, 0)
+WHIP <- c(1.273, 0.926, 0, 0)
+
+seasons <- data.frame(Season, Age, Pitches, Batted_Balls, Barrels, Barrel_Percentage, Barrel_PA,
+                      Exit_Velocity, Max_EV, Launch_Angle, Sweet_Spot_Percentage,
+                      xBA, xSLG, WOBA, xWOBA, Hard_Hit_Percentage, K_Percentage, BB_Percentage,
+                      ERA, xERA, FIP, WHIP) #Create dataset "seasons"
+```
+
+```{r McClanahan Pitch DF}
+Year <- c(2022, 2021, 2022, 2021, 2022, 2021, 2022, 2021)
+Pitch_Type <- c("4S", "4S", "CH", "CH", "CU", "CU", "SL", "SL")
+Use_Percentage <- c(35.7, 40.9, 25.4, 8.0, 23.4, 16.3, 15.5, 34.7)
+AVG_MPH <- c(96.7, 96.4, 87.7, 89.2, 82.0, 82.5, 89.3, 89.1)              
+#Pitch data from baseball savant
+AVG_Spin <- c(2233, 2256, 1732, 1725, 2628, 2653, 2350, 2400)
+PutAWay_Percentage <- c(20.7, 19.5, 27.9, 16.7, 29.9, 28.6, 26.9, 26.6)
+
+pitches <- data.frame(Year, Pitch_Type, Use_Percentage, AVG_MPH, AVG_Spin, PutAWay_Percentage)  
+#Create df based on pitch data
+```
+
+
+```{r McClanahan Pitch Use and put aways 21v22}
+ggplot(data = pitches) +
+  geom_line(mapping = aes(x = Year, y = Use_Percentage, color = Pitch_Type)) +
+  scale_x_continuous("Season", c(2021, 2022)) +
+  scale_y_continuous("Percentage of Use") +
+  ggtitle("Shane McClanahan Pitch Usage", "2021 Rookie Season vs. 2022 Season") +
+  guides(color = guide_legend(title = "Pitch Type"))
+
+ggplot(data = pitches) +
+  geom_line(mapping = aes(x = Year, y = PutAWay_Percentage, color = Pitch_Type)) +
+  scale_x_continuous("Season", c(2021, 2022)) +
+  scale_y_continuous("Put Away Percentage") +
+  ggtitle("Shane McClanahan Pitch Put Away Percentages", "2021 Rookie Season vs. 2022 Season") +
+  guides(color = guide_legend(title = "Pitch Type"))
+```
+These are Shane McClanahan's pitch usage percentages and put away percentages for 2021 and 2022 according to baseball savant. His pitch usage changed quite a bit from his rookie season in 2021 to 2022. McClanahan found much more success in 2022 by altering not necessarily his arsenal, but how he used it. In 2022, McClanahan threw his 4-Seam Fastball about 5% less, Slider about 19% less, Changeup about 17% more, and Curveball about 7% more. When you look at the put-away percentages, you find that McClanahan's Changeup went from a 17% put-away rate in 2021 to a 28% put-away rate 2022. By increasing his usage on his Changeup and limiting the use of his slider, McClanahan's Changeup became his second best put-away pitch and his xERA went from a poor 4.6 in 2021 to an elite 2.79.
+
+```{r bargraph}
+barrels <- ggplot(data = seasons, mapping = aes(x = Season, y = Barrel_Percentage)) +
+  geom_col(color = "Yellow", fill = "Navy") +
+  ggtitle("Shane McClanahan Barrel Percentages Vs. MLB Average") +
+  scale_y_continuous("Barrel Percentage\nOut of 100")
+
+exitvelo <- ggplot(data = seasons, mapping = aes(x = Season, y = Exit_Velocity)) +
+  geom_col(color = "Yellow", fill = "Navy") +
+  ggtitle("Shane McClanahan Average Opponent Exit Velocity Vs. MLB Average") +
+  scale_y_continuous("Average Exit Velocity") +
+  coord_cartesian(ylim = c(80, 95))
+
+barrels
+exitvelo
+```
+McClanahan posted elite AVG exit velocity and barrel percentages in 2022 bringing his overall career statistics down tremendously from 2021. McClanahan received 10 total points in AL Cy Young Award voting making him one of the most exciting up and coming pitchers in baseball and one of the most respected. McClanahan was well above MLB Average in many categories and had one of the biggest breakout seasons of all pitchers this year.
+
+```{r strikezonegraphs}
+ggplot(data = shane21temp) +
+  geom_point(mapping = aes(x = plate_x, y = plate_z, colour = pitch_type)) +
+  facet_grid(~stand)+
+  coord_equal() +
+   geom_rect(mapping = aes(ymax = 3.56, ymin = 1.6, xmax = -1, xmin = 1),
+             alpha = 0, size=1.2, colour = "red") +
+  ggtitle("Shane McClanahan 2021 Pitch Map By Handedness") +
+  scale_y_continuous("Plate Y Coordinate") +
+  scale_x_continuous("Plate X Coordinate") +
+  guides(color = guide_legend(title = "Pitch Type"))
+
+ggplot(data = shane22temp) +
+  geom_point(mapping = aes(x = plate_x, y = plate_z, color = pitch_type)) +
+  facet_grid(~stand)+
+  coord_equal() +
+   geom_rect(mapping = aes(ymax = 3.56, ymin = 1.6, xmax = -1, xmin = 1),
+             alpha = 0, size=1.2, colour = "red") +
+  ggtitle("Shane McClanahan 2022 Pitch Map By Handedness") +
+  scale_y_continuous("Plate Y Coordinate") +
+  scale_x_continuous("Plate X Coordinate") +
+  guides(color = guide_legend(title = "Pitch Type"))
+
+#Unsure why this gets another color for no data.
+```
+When looking at his 2021 pitch map vs 2022 pitch map, you can really see the difference in changeup usage. The big thing that stands out to me is also the difference between pitch mixes to right handed and left handed batters. His changeup usage skyrocketed against right handed batters while his slider was still being used as his primary put-away pitch against left handed batters. According to the maps, most of McClanahan's new found success came from tunneling low and in changeups off of elevated fastballs. The Rays pitcher's arsenal has been effective and he has had the ability to be more successful, he just wasn't utilizing his arsenal in the most effective way.
+
+
+```{r changeup leaders}
+changeups <- read.csv("C:\\Users\\grayl\\OneDrive\\Desktop\\Baseball\\McClanahan Proj\\MostUsedCH.csv")
+
+
+ggplot(data = changeups, mapping = aes(x = woba, y = run_value, color = last_name, 
+                                       label = ifelse(woba < .17, "McClanahan", " "),
+                                       hjust = 0, vjust = 2)) +
+  geom_point(size = 3) +
+  geom_text() +
+  ggtitle("MLB Pitchers who threw a CH in at least 150 Plate Appearences") +
+  scale_y_continuous("Run Value") +
+  scale_x_continuous("Weighted On Base Percentage") +
+  guides(color = guide_legend(title = "Pitcher"))
+
+ggplot(data = changeups, mapping = aes(x = pa, y = hard_hit_percent, color = last_name,
+                                       label = ifelse(pa == 172, "McClanahan", " "),
+                                       hjust = 0, vjust = -1)) +
+  geom_point(size = 3) +
+  geom_text() +
+  ggtitle("Hard Hit Leaders via CH\nMLB Pitchers who threw a CH in at least 150 Plate Appearences") +
+  scale_y_continuous("Hard Hit Percentage") +
+  scale_x_continuous("Plate Appearances") +
+  guides(color = guide_legend(title = "Pitcher"))  
+  
+ggplot(data = changeups, mapping = aes(x = pa, y = whiff_percent, color = last_name,
+                                       label = ifelse(pa == 172, "McClanahan", " "),
+                                       hjust = 0, vjust = 2)) +
+  geom_point(size = 3) +
+  geom_text() +
+  ggtitle("Whiff Leaders via CH\nMLB Pitchers who threw a CH in at least 150 Plate Appearences") +
+  scale_y_continuous("Whiff Percentage") +
+  scale_x_continuous("Plate Appearances") +
+  guides(color = guide_legend(title = "Pitcher"))
+
+ggplot(data = changeups, mapping = aes(x = pa, y = k_percent, color = last_name,
+                                       label = ifelse(pa == 172, "McClanahan", " "),
+                                       hjust = -.15, vjust = 0)) +
+  geom_point(size = 3) +
+  geom_text() +
+  ggtitle("Strikeout Leaders via CH\nMLB Pitchers who threw a CH in at least 150 Plate Appearences") +
+  scale_y_continuous("Strikeout Percentage") +
+  scale_x_continuous("Plate Appearances") +
+  guides(color = guide_legend(title = "Pitcher"))
+
+ggplot(data = changeups, mapping = aes(x = pa, y = put_away, color = last_name,
+                                       label = ifelse(pa == 172, "McClanahan", " "),
+                                       hjust = -.15, vjust = 0)) +
+  geom_point(size = 3) +
+  geom_text() +
+  ggtitle("2022 Put-Away Leaders via CH\nMLB Pitchers who threw a CH in at least 150 Plate Appearences") +
+  scale_y_continuous("Put-Away Percentage") +
+  scale_x_continuous("Plate Appearances") +
+  guides(color = guide_legend(title = "Pitcher"))
+```
+When compared to the 23 pitchers who threw the most changeups this year, McClanahan is very obviously an outlier. The Tampa Bay pitcher allowed the lowest weighted on-base percentage, whiff percentage, put away percentage, and was also third in strikeout % and fourth in hard hit percentage among these pitchers. By run value, he was the 4th most effective pitcher when throwing changeups in all of baseball. There was only one pitcher ahead of him that also received Cy Young votes. That was 2022 NL Cy Young winner Sandy Alcantara who posted a career low 2.28 ERA through 228.2 IP. McClanahan was just behind this with a 2.58 ERA through 289.2 IP. Considering McClanahan threw 71 more innings than Alcantara and had better K%, Put Away%, hard hit%, whiff%, and wOBA it could be argued he had more success with his changeup than the NL Cy Young winner. In one season, McClanahan drastically increased his changeup usage, and became one of the best left handed arms in baseball at only 25 years old.
+
+
+I selected these datasets because they came from accurate sources and are from MLB sponsored sites, I chose this question as I am working for the WSU baseball team and am pursuing a career in baseball research and development at the professional level.
+
+The big processing problem I ran into was having to hand type a dataset as it was not available to be exported. The other data from baseballr was already pretty clean so I did not have to alter it much.
+
+I designed my visualizations based on how well a baseball player or coach would be able to understand it. With this in mind I wanted to make sure that my visualizations were straight forward enough with the labeling and format so that what really stood out was the data itself.
+
+What I learned from my data by applying techniques used in class is the fact that sometimes pitchers and players alike already have the skillet to be dominant players and have great success, yet they don't utilize said skill set in a very effective way so it holds them back greatly, this is why game planning and strategy has become such a big part of baseball.
+
+Some additional analysis I would have liked to do would be on spin rates and directions with his pitching. There wasn't enough data to do this as there was only average spin rate values for each season instead of each pitch. I also would have liked to dive a little bit further into his pitch sequencing by at bat but it wouldve been very difficult to break the dataset up into each at bat from a whole season.
